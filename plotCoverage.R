@@ -5,7 +5,7 @@
 ## removes PCR duplicates, corrects for sequencing depth and normalises to 
 ## input. Dr Ed Curry wrote the plotCoverage function. It calculates the binned 
 ## average sequencing read coverage of an IRanges coverage object across a set
-## of genomic regions and outputs a plot.
+## of genomic regions and outputs a plot. Input variables are capitalised.
 ##
 ################################################################################
 #
