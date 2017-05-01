@@ -62,7 +62,7 @@ fit <- eBayes(fit)
 ########################################
 library(annotate)
 library(ARRAY)
-fit2$genes$Symbol <- getSYMBOL(fit2$genes$ID,"ARRAY")
+fit$genes$Symbol <- getSYMBOL(fit$genes$ID,"ARRAY")
 ########################################
 #
 ## Output a table statistically
