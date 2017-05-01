@@ -31,13 +31,6 @@ bgcorrected <- backgroundCorrect(rg,method="normexp")
 ma <- normalizeWithinArrays(bgcorrected,method="loess")
 ave <- avereps(ma, ID=ma$genes$ProbeName)
 ########################################
-#
-## Perform clustering analysis to
-## check the arrays cluster as expected
-## and boxplot to confirm normalised
-## distribution
-#
-########################################
 plot(hclust(dist(t(norm))))
 boxplot(log(normexprs,base=2)
 ########################################
