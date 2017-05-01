@@ -17,7 +17,7 @@ library(limma)
 ########################################
 #
 ## Load the data into R for processing
-## as a Affy batch object
+## as an Affy batch object
 #
 ########################################
 rawdata <- ReadAffy()
