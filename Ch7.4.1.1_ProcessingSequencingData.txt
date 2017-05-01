@@ -1,11 +1,11 @@
 ################################################################################
-#
+##
 ## This script downloads SRA files from the NCBI, converts them to fastq files,
 ## aligns them to the mm9 genome using Bowtie2, and finally merges, sorts, and
 ## subsets the resulting bam files. Subsetting the bam files dramatically
-## reduces their processing time in R. The subsetted bam files were not used for
-## peak-calling.
-#
+## reduces their processing time in R. The subsetted bam files were not used 
+## for peak-calling.
+##
 ################################################################################
 #
 ########################################
@@ -23,11 +23,15 @@ do
 done < toDownload.txt
 ########################################
 #
-## Convert SRA to fastq format with Fastq Dump
+## Convert SRA to fastq format with
+## Fastq Dump 
 #
 ########################################
 mkdir ./fastq
-find . -name *.sra | while read LINE; do /data/seqtools/sratoolkit.2.4.2-centos_linux64/bin/fastq-dump.2.4.2 $LINE "`basename "$LINE" .sra`.fastq"; done
+find . -name *.sra | while read LINE; 
+do 
+/data/seqtools/sratoolkit.2.4.2-centos_linux64/bin/fastq-dump.2.4.2 $LINE "`basename "$LINE" .sra`.fastq"; 
+done
 mv *.fastq ./fastq/
 ########################################
 #
@@ -35,7 +39,10 @@ mv *.fastq ./fastq/
 #
 ########################################
 mkdir ./fastqc
-for file in ./fastq/*.fastq; do /data/seqtools/FastQC/fastqc -o ./fastqc "$file"; done;
+for file in ./fastq/*.fastq; 
+do 
+/data/seqtools/FastQC/fastqc -o ./fastqc "$file"; 
+done;
 #
 ## Create the fasta file 'overrepresented.fa' of the overrepresented sequences found by FastQC
 #
@@ -50,11 +57,10 @@ for(i in 1:length(htmlFiles)){
 tables <- readHTMLTable(htmlFiles[i])
 contents <- unlist(lapply(tables,function(x) "Possible Source" %in% colnames(x)))
 lengthContents <- length(grep(TRUE,contents))
-	if(lengthContents>0) 
-	{ 
+	if(lengthContents>0){
 	tmp <- as.character(tables[[grep(TRUE,contents)]][,1])
 	overrepresented <- c(overrepresented,tmp)
-	}
+}
 }
 overrepresented <- overrepresented[!duplicated(overrepresented)]
 names(overrepresented) <- paste0("Overrepresented",1:length(overrepresented))
@@ -75,12 +81,19 @@ java -jar /data/seqtools/Trimmomatic-0.33/trimmomatic-0.33.jar SE -threads 12 -p
 done 
 ########################################
 #
-## Assess read quality after trimming with FastQC
+## Assess read quality after trimming
+## with FastQC 
 #
 ########################################
 mkdir ./fastq.trimmed.fastqc
-for file in ./fastq.trimmed/*.fastq; do /data/seqtools/FastQC/fastqc -o ./fastq.trimmed.fastqc "$file"; done; 
-for file in ./fastq.trimmed.fastqc/*.zip; do unzip $file; done;
+for file in ./fastq.trimmed/*.fastq; 
+do 
+/data/seqtools/FastQC/fastqc -o ./fastq.trimmed.fastqc "$file"; 
+done; 
+for file in ./fastq.trimmed.fastqc/*.zip; 
+do 
+unzip $file; 
+done;
 mv *_fastqc ./fastq.trimmed.fastqc
 find . -name *summary.txt > ./summaries.txt
 #
@@ -103,7 +116,8 @@ q()
 n
 ########################################
 #
-## Align fastq reads to mm9 genome with Bowtie2
+## Align fastq reads to mm9 genome with
+## Bowtie2 
 #
 ########################################
 export BOWTIE2_INDEXES=/data/seqtools/genomes/mm9/bowtie2/
@@ -138,11 +152,13 @@ name=`echo $LINE | cut -f 1 -d " "`
 samtools merge ../merged.bam/$name".bam" $bam
 fi
 done < toMerge.txt
-####################
+########################################
 #
-## Sort and subset bam files to regions of interest with Samtools Sort and Bedtools Intersect
+## Sort and subset bam files to regions 
+## of interest with Samtools Sort and
+## Bedtools Intersect 
 #
-####################
+########################################
 mkdir ./subset.bam
 for FILE in ./merged.bam/*.bam
 do
