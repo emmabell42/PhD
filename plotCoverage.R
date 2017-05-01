@@ -19,9 +19,6 @@ nice R
 require(ShortRead)
 library(GenomicRanges)
 library(GenomicAlignments)
-#
-## function to plot coverage across set of defined ranges
-#
 plotCoverage <- function(cov,regions,precision=1000,normalize.widths=TRUE,col="black",lty=1,lwd=1,plotfile=NULL){
 
 	trackVal <- array(0,dim=c(length(regions),precision))
