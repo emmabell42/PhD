@@ -1,8 +1,8 @@
 ################################################################################
 ##
-## This script loads Affymetrix microarray data into R, log2 transforms, quantile
-## normalises, performs linear regression, and calls differentially expressed
-## genes between two conditions. Input variables are capitalised.
+## This script loads Affymetrix microarray data into R, log2 transforms, 
+## quantile normalises, performs linear regression, and calls differentially 
+## expressed genes between two conditions. Input variables are capitalised.
 ##
 ################################################################################
 #
