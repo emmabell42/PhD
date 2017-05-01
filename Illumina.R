@@ -38,9 +38,12 @@ norm <- lumiN(log,method="quantile")
 #
 ## Perform clustering analysis to
 ## check the arrays cluster as expected
+## and boxplot to confirm normalised
+## distribution
 #
 ########################################
 plot(hclust(dist(t(norm))))
+boxplot(log(normexprs,base=2)
 ########################################
 #
 ## Fit the probe intensities to a linear
