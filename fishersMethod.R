@@ -1,6 +1,6 @@
 ################################################################################
 ##
-## This script generates a tabe of Fisher's combined P-values.
+## This script generates a table of Fisher's combined P-values.
 ##
 ################################################################################
 #
