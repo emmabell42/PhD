@@ -1,9 +1,12 @@
 ################################################################################
 ##
-## This script creates a table of t-statistics for the differential expression
-## of all mouse genes listed in the Mouse Genome Index. For each microarry or
-## RNA-seq experiment, it requires a table with columns for MGI gene symbol and
-## t-statistic (e.g. Limma's topTable output). Input variables are capitalised. 
+## This script creates a table of statistics pertaining to the differential 
+## expression of all mouse genes listed in the Mouse Genome Index. Here it
+## gathers t-statistics, but this script was also used to create tables of
+## log2(fold-changes) and multiple hypothesis testing corrected P-values. For 
+## each microarry or RNA-seq experiment, it requires a table with columns for 
+## MGI gene symbol and t-statistic (e.g. Limma's topTable output). Input 
+## variables are capitalised. 
 ##
 ################################################################################
 #
