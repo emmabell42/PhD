@@ -1,16 +1,18 @@
 ################################################################################
 ##
-## This script downloads SRA files from the NCBI, converts them to fastq files,
-## aligns them to the mm9 genome using Bowtie2, and finally merges, sorts, and
-## subsets the resulting bam files. Subsetting the bam files dramatically
-## reduces their processing time in R. The subsetted bam files were not used 
-## for peak-calling.
+## This script processes single-end sequencing reads. Briefly, it downloads SRA 
+## files from the NCBI, converts them to fastq files, aligns them to the mm9 
+## genome using Bowtie2, and finally merges, sorts, and subsets the resulting 
+## bam files. Subsetting the bam files dramatically reduces their processing 
+## time in R. The subsetted bam files were not used for peak-calling.
 ##
 ################################################################################
 #
 ########################################
 #
-## Download SRA files
+## Download SRA files. This step
+## requires a text file listing the file
+## paths on separate lines.
 #
 ########################################
 #
@@ -70,9 +72,12 @@ q()
 n
 ########################################
 #
-## Trim fastq files with Trimmomatic
+## Trim fastq files with Trimmomatic.
+## This step requires a text file
+## listing the base names of the fastq
+## files on separate lines.
 #
-########################################
+#########################################
 mv ./fastqc/overrepresented.fa ./
 mkdir fastq.trimmed
 for file in ./fastq/*.fastq; 
@@ -116,10 +121,12 @@ q()
 n
 ########################################
 #
-## Align fastq reads to mm9 genome with
-## Bowtie2 
+## Align reads with Bowtie2. This step 
+## requires a text file listing the base 
+## names of the fastq files on separate 
+## lines.
 #
-########################################
+#########################################
 export BOWTIE2_INDEXES=/data/seqtools/genomes/mm9/bowtie2/
 mkdir sam 
 mkdir bam 
@@ -130,7 +137,12 @@ samtools view -bS ./sam/"`basename "$filename" .trimmed.fastq`.sam" > ./bam/"`ba
 done
 ########################################
 #
-## Merge bam files with Samtools Merge
+## Merge bam files with Samtools Merge.
+## This step requires a comma delimited
+## file where the first column is the
+## merged bam file name and the
+## subsequent columns at the bam files
+## to merge.
 #
 ########################################
 #
