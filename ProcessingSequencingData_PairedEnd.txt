@@ -1,0 +1,142 @@
+################################################################################
+##
+## This script processes paired-end sequencing reads. Briefly, it downloads SRA 
+## files from the NCBI, converts them to fastq files, aligns them to the mm9 
+## genome using Bowtie2, and finally merges, sorts, and subsets the resulting 
+## bam files. Subsetting the bam files dramatically reduces their processing 
+## time in R. The subsetted bam files were not used for peak-calling.
+##
+################################################################################
+#
+########################################
+#
+## Download SRA files. This step
+## requires a text file listing the file
+## paths on separate lines.
+#
+########################################
+#
+#Create the text file 'toDownload.txt' listing the paths to SRA files.
+#!/bin/bash
+baseDir="ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByExp/sra/"
+while read LINE;
+do
+        wget -r -np -k -nH -R robots.txt $baseDir$LINE
+done < toDownload.txt
+########################################
+#
+## Convert SRA to fastq format with
+## Fastq Dump 
+#
+########################################
+mkdir ./fastq
+find . -name *.sra | while read LINE; 
+do 
+/data/seqtools/sratoolkit.2.4.2-centos_linux64/bin/fastq-dump.2.4.2 $LINE "`basename "$LINE" .sra`.fastq"; 
+done
+mv *.fastq ./fastq/
+########################################
+#
+## Assess read quality with FastQC
+#
+########################################
+mkdir ./fastqc
+for file in ./fastq/*.fastq; 
+do 
+/data/seqtools/FastQC/fastqc -o ./fastqc "$file"; 
+done;
+#
+## Create the fasta file 'overrepresented.fa' of the overrepresented sequences found by FastQC
+#
+nice R
+library(XML)
+library(GenomicRanges)
+library(ShortRead)
+overrepresented <- c()
+setwd(paste0(getwd(),"/fastqc"))
+htmlFiles <- list.files()[grep(".html",list.files())]
+for(i in 1:length(htmlFiles)){
+tables <- readHTMLTable(htmlFiles[i])
+contents <- unlist(lapply(tables,function(x) "Possible Source" %in% colnames(x)))
+lengthContents <- length(grep(TRUE,contents))
+	if(lengthContents>0){
+	tmp <- as.character(tables[[grep(TRUE,contents)]][,1])
+	overrepresented <- c(overrepresented,tmp)
+}
+}
+overrepresented <- overrepresented[!duplicated(overrepresented)]
+names(overrepresented) <- paste0("Overrepresented",1:length(overrepresented))
+overrepresented <- DNAStringSet(overrepresented)
+writeFasta(overrepresented,"overrepresented.fa")
+q()
+n
+########################################
+#
+## Trim fastq files with Trimmomatic.
+## This step requires a text file
+## listing the base names of the fastq
+## files on separate lines.
+#
+#########################################
+mkdir fastq.trimmedPE
+while read LINE; 
+do 
+java -jar /data/seqtools/Trimmomatic-0.33/trimmomatic-0.33.jar PE -phred33 -baseout /fastq.trimmedPE/$LINE $LINE"_R1.fastq" $LINE"_R2.fastq" ILLUMINACLIP:overrepresented.fa:2:30:10 LEADING:20 TRAILING:20 SLIDINGWINDOW:4:20 MINLEN:20;
+done < files
+########################################
+#
+## Align reads with Bowtie2. This step 
+## requires a text file listing the base 
+## names of the fastq files on separate 
+## lines.
+#
+#########################################
+mkdir samPE
+mkdir bamPE
+export BOWTIE2_INDEXES=/data/seqtools/genomes/mm9/bowtie2/
+while read LINE;
+do 
+/data/seqtools/bowtie2-2.2.3/bowtie2 -x mm9 -1 ./fastq.trimmedPE/$LINE"_1P" -2 ./fastq.trimmedPE/$LINE"_2P" -S ./samPE/$LINE".sam" -p 8
+samtools view -bS ./samPE/$LINE".sam" > ./bamPE/$LINE".bam";
+done < files
+########################################
+#
+## Merge bam files with Samtools Merge.
+## This step requires a comma delimited
+## file where the first column is the
+## merged bam file name and the
+## subsequent columns at the bam files
+## to merge.
+#
+########################################
+mkdir merged.bam
+cd bamPE
+while read LINE;
+do
+cols=$( echo $LINE | awk '{print NF}') 
+echo $cols
+if [ $cols -eq 2 ]
+then
+rep1=`echo $LINE | cut -f 2 -d ","`
+name=`echo $LINE | cut -f 1 -d " "`
+cp $rep1 ../merged.bam/$name.bam
+else
+bam=`echo $LINE | cut -f 2- -d ","`
+name=`echo $LINE | cut -f 1 -d ","`
+samtools merge ../merged.bam/$name".bam" $bam
+fi
+done < toMerge.txt
+cd ..
+########################################
+#
+## Sort and subset bam files to regions 
+## of interest with Samtools Sort and
+## Bedtools Intersect 
+#
+########################################
+mkdir ./subset.bam
+for FILE in ./merged.bam/*.bam
+do
+samtools sort -o $FILE -O bam -T tmp $FILE -@12
+bedtools intersect -abam $FILE -b /data/emmabell42/resources/ESC_enhancers_plus20.bed > ./subset.bam/"`basename "$FILE" .merged.bam`.subset.bam" -sorted;
+done
